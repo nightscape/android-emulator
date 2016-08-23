@@ -64,7 +64,6 @@ $ docker run -e "EMULATOR=android-22" -e "ARCH=x86" -d -P --name android tracer0
 ### How to connect to emulator
 
 Emulator container exposed 4 port's by default:
-tcp/22 - SSH connection to container (login: root, password: android, change this if you are security concerned)
 
 * tcp/5037 - ADB
 * tcp/5554 - ADB
@@ -79,18 +78,7 @@ A: Depend on Docker toolset: for GUI tools as Kitematic just check port forwardi
 $ sudo docker ps
 CONTAINER ID        IMAGE                          COMMAND                  CREATED             STATUS              PORTS                                                                                                                       NAMES
 0dd15cd1bd43        tracer0tong/android-emulator   "/entrypoint.sh -e an"   6 days ago          Up 6 days           0.0.0.0:32812->22/tcp, 0.0.0.0:32811->5037/tcp, 0.0.0.0:32810->5554/tcp, 0.0.0.0:32809->5555/tcp, 0.0.0.0:32808->5900/tcp   android
-$ ssh root@0.0.0.0 -p 32812
-root@0.0.0.0's password:
-Welcome to Ubuntu 12.04.5 LTS (GNU/Linux 3.19.0-28-generic x86_64)
-
- * Documentation:  https://help.ubuntu.com/
-
-The programs included with the Ubuntu system are free software;
-the exact distribution terms for each program are described in the
-individual files in /usr/share/doc/*/copyright.
-
-Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
-applicable law.
+$ docker exec -it android bash
 
 root@0dd15cd1bd43:~#
 ```
