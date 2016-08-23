@@ -15,8 +15,6 @@ if [[ -n $1 ]]; then
     tail -1 $1
 fi
 
-# Run sshd
-/usr/sbin/sshd
 adb start-server
 
 # Detect ip and forward ADB ports outside to outside interface
@@ -27,7 +25,7 @@ socat tcp-listen:5555,bind=$ip,fork tcp:127.0.0.1:5555 &
 
 # Set up and run emulator
 if [[ $ARCH == *"x86"* ]]
-then 
+then
     EMU="x86"
 else
     EMU="arm"

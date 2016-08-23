@@ -10,7 +10,6 @@ MAINTAINER tracer0tong <yuriy.leonychev@gmail.com>
 ENV ROOTPASSWORD android
 
 # Expose ADB, ADB control and VNC ports
-EXPOSE 22
 EXPOSE 5037
 EXPOSE 5554
 EXPOSE 5555
@@ -24,7 +23,7 @@ RUN echo "debconf shared/accepted-oracle-license-v1-1 seen true" | debconf-set-s
 RUN apt-get -y update
 
 # First, install add-apt-repository, sshd and bzip2
-RUN apt-get -y install python-software-properties bzip2 ssh net-tools
+RUN apt-get -y install python-software-properties bzip2 net-tools
 
 # Add oracle-jdk7 to repositories
 RUN add-apt-repository ppa:webupd8team/java
@@ -83,18 +82,6 @@ RUN echo "y" | android update adb
 # Create fake keymap file
 RUN mkdir /usr/local/android-sdk/tools/keymaps
 RUN touch /usr/local/android-sdk/tools/keymaps/en-us
-
-# Run sshd
-RUN apt-get install -y openssh-server
-RUN mkdir /var/run/sshd
-RUN echo "root:$ROOTPASSWORD" | chpasswd
-RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-
-# SSH login fix. Otherwise user is kicked off after login
-RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-
-ENV NOTVISIBLE "in users profile"
-RUN echo "export VISIBLE=now" >> /etc/profile
 
 # Install socat
 RUN apt-get install -y socat
