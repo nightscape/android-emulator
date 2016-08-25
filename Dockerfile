@@ -1,10 +1,6 @@
-# Android development environment for ubuntu precise (12.04 LTS) (i386).
-# version 0.0.4
+FROM ubuntu:latest
 
-# Start with ubuntu 12.04 (i386).
-FROM ubuntu:12.04
-
-MAINTAINER tracer0tong <yuriy.leonychev@gmail.com>
+MAINTAINER Martin Mauch <martin.mauch@gmail.com>
 
 # Expose ADB, ADB control and VNC ports
 EXPOSE 5037
@@ -16,74 +12,36 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN echo "debconf shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
 RUN echo "debconf shared/accepted-oracle-license-v1-1 seen true" | debconf-set-selections
 
-# Update packages
-RUN apt-get -y update
+RUN apt-get -y update && \
+  apt-get -y install software-properties-common bzip2 net-tools socat curl && \
+  add-apt-repository ppa:webupd8team/java && \
+  apt-get -y update && \
+  apt-get -y install oracle-java8-installer
 
-# First, install add-apt-repository, sshd and bzip2
-RUN apt-get -y install python-software-properties bzip2 net-tools
-
-# Add oracle-jdk7 to repositories
-RUN add-apt-repository ppa:webupd8team/java
-
-# Make sure the package repository is up to date
-RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
-
-# Update apt
-RUN apt-get update
-
-# Install oracle-jdk7
-RUN apt-get -y install oracle-java7-installer
-
-# Install android sdk
-RUN wget http://dl.google.com/android/android-sdk_r23-linux.tgz
-RUN tar -xvzf android-sdk_r23-linux.tgz
-RUN mv android-sdk-linux /usr/local/android-sdk
-
-# Install apache ant
-RUN wget http://archive.apache.org/dist/ant/binaries/apache-ant-1.8.4-bin.tar.gz
-RUN tar -xvzf apache-ant-1.8.4-bin.tar.gz
-RUN mv apache-ant-1.8.4 /usr/local/apache-ant
+# Install Android SDK
+ARG SDK_VERSION=24.3.4
+RUN  mkdir -p /opt && curl -L http://dl.google.com/android/android-sdk_r$SDK_VERSION-linux.tgz | tar zxv -C /opt
 
 # Add android tools and platform tools to PATH
-ENV ANDROID_HOME /usr/local/android-sdk
-ENV PATH $PATH:$ANDROID_HOME/tools
-ENV PATH $PATH:$ANDROID_HOME/platform-tools
-
-# Add ant to PATH
-ENV ANT_HOME /usr/local/apache-ant
-ENV PATH $PATH:$ANT_HOME/bin
+ENV ANDROID_HOME /opt/android-sdk-linux
+ENV PATH $PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
 
 # Export JAVA_HOME variable
-ENV JAVA_HOME /usr/lib/jvm/java-7-oracle
-
-# Remove compressed files.
-RUN cd /; rm android-sdk_r23-linux.tgz && rm apache-ant-1.8.4-bin.tar.gz
-
-# Some preparation before update
-RUN chown -R root:root /usr/local/android-sdk/
-
-# Install latest android tools and system images
-RUN echo "y" | android update sdk --filter platform-tool --no-ui --force
-RUN echo "y" | android update sdk --filter platform --no-ui --force
-RUN echo "y" | android update sdk --filter build-tools-22.0.1 --no-ui -a
-RUN echo "y" | android update sdk --filter sys-img-x86-android-19 --no-ui -a
-RUN echo "y" | android update sdk --filter sys-img-x86-android-21 --no-ui -a
-RUN echo "y" | android update sdk --filter sys-img-x86-android-22 --no-ui -a
-RUN echo "y" | android update sdk --filter sys-img-armeabi-v7a-android-19 --no-ui -a
-RUN echo "y" | android update sdk --filter sys-img-armeabi-v7a-android-21 --no-ui -a
-RUN echo "y" | android update sdk --filter sys-img-armeabi-v7a-android-22 --no-ui -a
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 
 # Update ADB
 RUN echo "y" | android update adb
 
+ARG EMULATOR_VERSION=android-24
+ARG BUILD_TOOLS_VERSION=24.0.2
+# Install latest android tools and system images
+RUN ( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk -a --filter platform-tools,build-tools-$BUILD_TOOLS_VERSION,$EMULATOR_VERSION,sys-img-x86-$EMULATOR_VERSION --no-ui --force
+
 # Create fake keymap file
-RUN mkdir /usr/local/android-sdk/tools/keymaps
-RUN touch /usr/local/android-sdk/tools/keymaps/en-us
+RUN mkdir /opt/android-sdk-linux/tools/keymaps
+RUN touch /opt/android-sdk-linux/tools/keymaps/en-us
 
-# Install socat
-RUN apt-get install -y socat
-
-# Add entrypoint 
+# Add entrypoint
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
